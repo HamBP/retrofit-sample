@@ -6,6 +6,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Call
@@ -34,7 +39,9 @@ class MainViewModel : ViewModel() {
     init {
 //        fetchArticleUsingCallback1()
 //        fetchArticleUsingCallback2()
-        fetchArticleUsingCoroutine1()
+//        fetchArticleUsingCoroutine1()
+//        fetchWArticleWithResult()
+        fetchArticleWithFlow()
     }
 
     private fun fetchArticleUsingCallback1() {
@@ -81,5 +88,37 @@ class MainViewModel : ViewModel() {
                 _uiState.value = UiState.Error("요청에 실패했어요.")
             }
         }
+    }
+
+    private fun fetchArticleWithResult() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            articleRepository.getArticleWithResult()
+                .onSuccess { article ->
+                    println("코루틴 + Result 예시 : $article")
+                    _uiState.value = UiState.Success(article)
+                }
+                .onFailure {
+                    _uiState.value = UiState.Error(it.message ?: "요청에 실패했어요.")
+                }
+        }
+    }
+
+    private fun fetchArticleWithFlow() {
+        articleRepository.getArticleWithFlow()
+            .onStart {
+                _uiState.value = UiState.Loading
+            }
+            .onEach { article ->
+                println("코루틴 + Flow 예시 : $article")
+                _uiState.value = UiState.Success(article)
+            }
+            .catch {
+                _uiState.value = UiState.Error(it.message ?: "요청에 실패했어요.")
+            }
+            .onCompletion {
+                // do something
+            }
+            .launchIn(viewModelScope)
     }
 }

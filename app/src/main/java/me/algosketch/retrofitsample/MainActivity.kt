@@ -26,6 +26,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+        MainViewModel()
+        println("뷰모델 생성 완료")
     }
 }
 

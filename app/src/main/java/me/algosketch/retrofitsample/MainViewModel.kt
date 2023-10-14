@@ -32,10 +32,12 @@ class MainViewModel : ViewModel() {
 
     init {
 //        fetchArticleUsingCallback1()
-        fetchArticleUsingCallback2()
+//        fetchArticleUsingCallback2()
+        fetchArticleUsingCoroutine1()
     }
 
     private fun fetchArticleUsingCallback1() {
+        _uiState.value = UiState.Loading
         val call = articleApi.getArticle1(1)
         call.enqueue(object : Callback<Article> {
             override fun onResponse(call: Call<Article>, response: Response<Article>) {
@@ -53,12 +55,26 @@ class MainViewModel : ViewModel() {
 
     private fun fetchArticleUsingCallback2() {
         viewModelScope.launch {
+            _uiState.value = UiState.Loading
             val response = withContext(Dispatchers.IO) {
                 articleApi.getArticle1(1).execute()
             }
 
             if (response.isSuccessful) {
                 println("콜백 방식 2 : ${response.body()}")
+                _uiState.value = UiState.Success(response.body()!!)
+            } else {
+                _uiState.value = UiState.Error("요청에 실패했어요.")
+            }
+        }
+    }
+
+    private fun fetchArticleUsingCoroutine1() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            val response = articleApi.getArticle3(1)
+            if (response.isSuccessful) {
+                println("코루틴 예시 1 : ${response.body()}")
                 _uiState.value = UiState.Success(response.body()!!)
             } else {
                 _uiState.value = UiState.Error("요청에 실패했어요.")

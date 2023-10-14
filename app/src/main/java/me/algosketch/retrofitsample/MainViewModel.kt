@@ -26,6 +26,7 @@ sealed interface UiState {
 
 class MainViewModel : ViewModel() {
     private val articleApi: ArticleApi = RetrofitFactory.create()
+    private val articleRepository = ArticleRepository()
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
